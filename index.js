@@ -95,9 +95,9 @@ app.listen(port, () => {
       modeles: [
         {
           titre: "Modèle de lettre – Mise en demeure :",
-          contenu: "[Lettre ici, si présente dans la réponse]",
-        },
-      ],
+          contenu: "[Lettre ici, si présente dans la réponse]"
+        }
+      ]
     };
 
     res.json(jsonRéponse);
