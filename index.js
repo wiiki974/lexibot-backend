@@ -13,6 +13,37 @@ const openai = new OpenAI({
   apiKey: process.env.CLE_API_OPENAI,
 });
 
+function extraireSections(texte) {
+  const sections = {
+    lettre1: "",
+    lettre2: "",
+    lettre3: "",
+    lettre4: "",
+    lettre5: "",
+    modeles: [],
+  };
+
+  const parties = texte.split(/(?:\*\*|\#\#\#)?\s*\d\.\s*(Résumé|Ce que dit la loi|Peine encourue|Solutions possibles|Étapes concrètes)[\s:]*/gi);
+
+  const labels = ["lettre1", "lettre2", "lettre3", "lettre4", "lettre5"];
+  for (let i = 0; i < labels.length; i++) {
+    if (parties[i * 2 + 2]) {
+      sections[labels[i]] = `${i + 1}. ${parties[i * 2 + 1].trim()}\n${parties[i * 2 + 2].trim()}`;
+    }
+  }
+
+  const modeleRegex = /(?:\*\*|###)?\s*Modèle de lettre\s*[-–]\s*(.*?)\s*[:：]?\s*\n([\s\S]+?)(?=(?:\*\*|###)?\s*Modèle de lettre|$)/gi;
+  let match;
+  while ((match = modeleRegex.exec(texte)) !== null) {
+    sections.modeles.push({
+      titre: `Modèle de lettre – ${match[1].trim()} :`,
+      contenu: match[2].trim(),
+    });
+  }
+
+  return sections;
+}
+
 app.post("/generer", async (req, res) => {
   const { message } = req.body;
 
@@ -35,6 +66,21 @@ app.post("/generer", async (req, res) => {
         },
         { role: "user", content: message },
       ],
+    });
+
+    const fullText = completion.choices[0].message.content;
+    const jsonRéponse = extraireSections(fullText);
+
+    res.json(jsonRéponse);
+  } catch (error) {
+    console.error("Erreur OpenAI :", error);
+    res.status(500).json({ erreur: "Erreur lors de la génération" });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`✅ Backend LexiBot démarré sur http://localhost:${port}`);
+});      ],
     });
 
     const fullText = completion.choices[0].message.content;
