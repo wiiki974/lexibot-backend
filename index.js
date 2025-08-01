@@ -13,7 +13,7 @@ const openai = new OpenAI({
   apiKey: process.env.CLE_API_OPENAI,
 });
 
-app.post("/générer", async (req, res) => {
+app.post("/generer", async (req, res) => {
   const { message } = req.body;
 
   if (!message) {
